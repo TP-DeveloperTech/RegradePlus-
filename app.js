@@ -1,4 +1,4 @@
-// ใช้ Firebase compat version (v8 style)
+// Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyBJi1kmfyBYg8AxLl261cpm4Q6-ObkRSEo",
     authDomain: "regradeplus-82d6b.firebaseapp.com",
@@ -9,28 +9,27 @@ const firebaseConfig = {
     measurementId: "G-3DJWVKQQ1Q"
 };
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-// โหลด menu เมื่อหน้าโหลดเสร็จ
+// DOM Content Loaded
 document.addEventListener("DOMContentLoaded", () => {
     fetch("menu.html")
         .then(res => res.text())
         .then(html => {
             document.getElementById("menu-container").innerHTML = html;
-            updateAdminLink(); // อัพเดท admin link หลังโหลด menu
+            updateAdminLink();
         })
         .catch(err => console.error("โหลด menu ไม่ได้:", err));
 
-    // เรียก loadHistory ถ้าอยู่ในหน้า history
     if (document.getElementById('history-list')) {
         loadHistory();
     }
 });
 
+// Menu Functions
 function toggleMenu() {
     const menu = document.getElementById('sideMenu');
     if (menu) {
@@ -47,6 +46,7 @@ function logout() {
     });
 }
 
+// Email Validation
 function checkEmailType(email) {
     if (email === "admin.regradeplus@gmail.com") {
         return "admin";
@@ -57,6 +57,7 @@ function checkEmailType(email) {
     }
 }
 
+// Authentication Functions
 function login() {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
@@ -108,6 +109,7 @@ function register() {
         });
 }
 
+// Submit Work Function
 async function submitWork() {
     const msg = document.getElementById("msg");
 
@@ -122,24 +124,32 @@ async function submitWork() {
 
     if (files.length < 3) {
         msg.textContent = "ต้องอัปโหลดรูปอย่างน้อย 3 รูป!";
+        msg.style.color = "red";
         return;
     }
 
     const uid = localStorage.getItem("uid");
     if (!uid) {
         msg.textContent = "กรุณา login ก่อน";
+        msg.style.color = "red";
         return;
     }
 
     msg.textContent = "กำลังอัปโหลด...";
+    msg.style.color = "blue";
 
     try {
         let imageUrls = [];
 
-        for (let file of files) {
-            const fileRef = storage.ref(`submits/${uid}/${Date.now()}_${file.name}`);
-            await fileRef.put(file);
-            const url = await fileRef.getDownloadURL();
+        // Upload Multiple Images
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const fileRef = storage.ref(`submits/${uid}/${Date.now()}_${i}_${file.name}`);
+            
+            msg.textContent = `กำลังอัปโหลดรูปที่ ${i + 1}/${files.length}...`;
+            
+            const snapshot = await fileRef.put(file);
+            const url = await snapshot.ref.getDownloadURL();
             imageUrls.push(url);
         }
 
@@ -156,10 +166,9 @@ async function submitWork() {
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        msg.textContent = "ส่งงานสำเร็จ!";
+        msg.textContent = `ส่งงานสำเร็จ! (อัปโหลด ${imageUrls.length} รูป)`;
         msg.style.color = "green";
         
-        // ล้างฟอร์ม
         document.getElementById("name").value = "";
         document.getElementById("class").value = "";
         document.getElementById("studentId").value = "";
@@ -175,6 +184,7 @@ async function submitWork() {
     }
 }
 
+// Load History Function
 function loadHistory() {
     const uid = localStorage.getItem('uid');
     const container = document.getElementById('history-list');
@@ -207,8 +217,8 @@ function loadHistory() {
                 let filesHtml = "";
                 if (data.images && data.images.length > 0) {
                     filesHtml = data.images.map((url, idx) => 
-                        `<a href="${url}" target="_blank">รูปที่ ${idx + 1}</a>`
-                    ).join(" | ");
+                        `<a href="${url}" target="_blank" style="margin-right: 10px;">รูปที่ ${idx + 1}</a>`
+                    ).join("");
                 }
 
                 const timestamp = data.timestamp ? 
@@ -221,7 +231,7 @@ function loadHistory() {
                     ชั้น: ${data.classRoom || "-"}<br>
                     สถานะ: <span style="color: orange;">${data.status || "รอตรวจ"}</span><br>
                     ส่งเมื่อ: ${timestamp}<br>
-                    ไฟล์: ${filesHtml || "ไม่มีไฟล์"}
+                    ไฟล์ (${data.images.length} รูป): ${filesHtml || "ไม่มีไฟล์"}
                 `;
                 container.appendChild(div);
             });
@@ -232,6 +242,7 @@ function loadHistory() {
         });
 }
 
+// Admin Link Management
 function updateAdminLink() {
     auth.onAuthStateChanged(user => {
         const adminLink = document.getElementById('admin-link');
@@ -244,4 +255,5 @@ function updateAdminLink() {
         }
     });
 }
+
 updateAdminLink();
