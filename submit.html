@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>RegradePlus:Submit</title>
+</head>
+<body>
+    <div id="menu-container"></div>
+    <h2>ส่งงานแก้ ศูนย์/ร./มส./มพ.</h2>
+
+    <input id="name" placeholder="ชื่อ-นามสกุล"><br><br>
+    <input id="class" placeholder="ชั้น"><br><br>
+    <input id="studentId" placeholder="รหัส นร."><br><br>
+    <input id="subjectCode" placeholder="รหัสวิชา"><br><br>
+    <input id="subjectName" placeholder="ชื่อวิชา"><br><br>
+    <input id="year" placeholder="ปีการศึกษา"><br><br>
+
+    <label>อัปโหลดรูป (3 รูปขึ้นไป)</label><br>
+    <input type="file" id="images" multiple accept="image/*"><br><br>
+    <button onclick="submitWork()">ส่งงาน</button>
+    
+    <p id="msg"></p>
+</body>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="app.js" defer></script>
+</html>
