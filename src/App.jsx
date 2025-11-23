@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, LogOut, Upload, Eye, Edit2, Check, X, AlertCircle, CheckCircle, Trash2, ZoomIn } from 'lucide-react';
+import { Search, LogOut, Upload, Eye, Edit2, Check, X, AlertCircle, CheckCircle, Trash2, ZoomIn, RotateCcw, Trash } from 'lucide-react';
 
 const App = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -140,9 +140,29 @@ const App = () => {
   };
 
   const deleteSubmission = (submissionId) => {
+    const updatedSubmissions = submissions.map(sub =>
+      sub.id === submissionId ? { ...sub, isDeleted: true, deletedAt: new Date().toISOString() } : sub
+    );
+    saveSubmissions(updatedSubmissions);
+    showPopup('ย้ายงานไปถังขยะแล้ว', 'success');
+  };
+
+  const restoreSubmission = (submissionId) => {
+    const updatedSubmissions = submissions.map(sub => {
+      if (sub.id === submissionId) {
+        const { isDeleted, deletedAt, ...rest } = sub;
+        return rest;
+      }
+      return sub;
+    });
+    saveSubmissions(updatedSubmissions);
+    showPopup('กู้คืนงานสำเร็จ', 'success');
+  };
+
+  const permanentDeleteSubmission = (submissionId) => {
     const updatedSubmissions = submissions.filter(sub => sub.id !== submissionId);
     saveSubmissions(updatedSubmissions);
-    showPopup('ลบงานสำเร็จ', 'success');
+    showPopup('ลบงานถาวรสำเร็จ', 'success');
   };
 
   const getUserSubmissions = () => {
