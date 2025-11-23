@@ -304,7 +304,7 @@ const App = () => {
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="yourname@taweethapisek.ac.th"
+              placeholder="yourStudentId@taweethapisek.ac.th"
               required
               style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
             />
