@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, LogOut, Upload, Eye, Edit2, Check, X, AlertCircle, CheckCircle } from 'lucide-react';
+import { Search, LogOut, Upload, Eye, Edit2, Check, X, AlertCircle, CheckCircle, Trash2, ZoomIn } from 'lucide-react';
 
 const App = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -9,6 +9,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('name');
   const [popup, setPopup] = useState({ show: false, message: '', type: 'success' });
+  const [viewImage, setViewImage] = useState(null);
 
   // Admin Secret Code
   const ADMIN_SECRET_CODE = 'ADMIN2025';
@@ -123,10 +124,25 @@ const App = () => {
   };
 
   const updateSubmission = (submissionId, updatedData) => {
-    const updatedSubmissions = submissions.map(sub =>
-      sub.id === submissionId ? { ...sub, ...updatedData } : sub
-    );
+    const updatedSubmissions = submissions.map(sub => {
+      if (sub.id === submissionId) {
+        const updated = { ...sub, ...updatedData };
+        // ถ้าเปลี่ยนเป็น "ตรวจแล้ว" ให้บันทึกวันที่
+        if (updatedData.status === 'ตรวจแล้ว' && !sub.completedAt) {
+          updated.completedAt = new Date().toISOString();
+        }
+        return updated;
+      }
+      return sub;
+    });
     saveSubmissions(updatedSubmissions);
+    showPopup('บันทึกข้อมูลสำเร็จ', 'success');
+  };
+
+  const deleteSubmission = (submissionId) => {
+    const updatedSubmissions = submissions.filter(sub => sub.id !== submissionId);
+    saveSubmissions(updatedSubmissions);
+    showPopup('ลบงานสำเร็จ', 'success');
   };
 
   const getUserSubmissions = () => {
@@ -151,6 +167,63 @@ const App = () => {
   };
 
   // Components
+  const ImageViewer = () => {
+    if (!viewImage) return null;
+
+    return (
+      <div 
+        style={{ 
+          position: 'fixed', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          backgroundColor: 'rgba(0,0,0,0.9)', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          zIndex: 10000,
+          cursor: 'pointer'
+        }} 
+        onClick={() => setViewImage(null)}
+      >
+        <div style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
+          <img 
+            src={viewImage} 
+            alt="Full view" 
+            style={{ 
+              maxWidth: '100%', 
+              maxHeight: '90vh', 
+              objectFit: 'contain',
+              borderRadius: '8px'
+            }} 
+          />
+          <button 
+            onClick={() => setViewImage(null)}
+            style={{ 
+              position: 'absolute', 
+              top: '-40px', 
+              right: '0', 
+              backgroundColor: 'white', 
+              border: 'none', 
+              borderRadius: '50%', 
+              width: '35px', 
+              height: '35px', 
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px',
+              fontWeight: 'bold'
+            }}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const PopupNotification = () => {
     if (!popup.show) return null;
 
@@ -418,7 +491,26 @@ const App = () => {
   };
 
   const HistoryPage = () => {
-    const userSubmissions = getUserSubmissions().sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+    const [localSearchTerm, setLocalSearchTerm] = useState('');
+    const [localSearchType, setLocalSearchType] = useState('subject');
+    
+    const getFilteredSubmissions = () => {
+      let filtered = getUserSubmissions();
+      
+      if (localSearchTerm) {
+        filtered = filtered.filter(sub => {
+          if (localSearchType === 'subject') {
+            return sub.subjectName.toLowerCase().includes(localSearchTerm.toLowerCase());
+          } else {
+            return sub.subjectCode.toLowerCase().includes(localSearchTerm.toLowerCase());
+          }
+        });
+      }
+      
+      return filtered.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+    };
+    
+    const userSubmissions = getFilteredSubmissions();
     const [selectedSubmission, setSelectedSubmission] = useState(null);
 
     const getStatusColor = (status) => {
@@ -432,7 +524,7 @@ const App = () => {
     return (
       <div style={{ maxWidth: '1000px', margin: '20px auto', padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h2>ประวัติการส่งงาน</h2>
+          <h2>ประวัติการส่งงาน ({userSubmissions.length} งาน)</h2>
           <div>
             <button onClick={() => setPage('submit')} style={{ marginRight: '10px', padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>ส่งงานใหม่</button>
             <button onClick={handleLogout} style={{ padding: '10px 20px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
@@ -440,9 +532,29 @@ const App = () => {
             </button>
           </div>
         </div>
+        
+        <div style={{ marginBottom: '25px', display: 'flex', gap: '10px', backgroundColor: 'white', padding: '15px', borderRadius: '8px', border: '1px solid #ddd' }}>
+          <select value={localSearchType} onChange={(e) => setLocalSearchType(e.target.value)} style={{ padding: '10px', border: '1px solid #ddd', borderRadius: '4px', minWidth: '180px' }}>
+            <option value="subject">ค้นหาด้วยชื่อวิชา</option>
+            <option value="code">ค้นหาด้วยรหัสวิชา</option>
+          </select>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <input
+              type="text"
+              placeholder={`ค้นหา${localSearchType === 'subject' ? 'ชื่อวิชา' : 'รหัสวิชา'}...`}
+              value={localSearchTerm}
+              onChange={(e) => setLocalSearchTerm(e.target.value)}
+              style={{ width: '100%', padding: '10px 40px 10px 10px', border: '1px solid #ddd', borderRadius: '4px' }}
+            />
+            <Search size={20} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#666' }} />
+          </div>
+        </div>
+        
         {userSubmissions.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '50px', backgroundColor: 'white', borderRadius: '8px', border: '1px solid #ddd' }}>
-            <p style={{ fontSize: '18px', color: '#666' }}>ยังไม่มีประวัติการส่งงาน</p>
+            <p style={{ fontSize: '18px', color: '#666' }}>
+              {localSearchTerm ? 'ไม่พบงานที่ค้นหา' : 'ยังไม่มีประวัติการส่งงาน'}
+            </p>
           </div>
         ) : (
           <div style={{ display: 'grid', gap: '15px' }}>
@@ -475,6 +587,11 @@ const App = () => {
                 <div><strong>ติด:</strong> {selectedSubmission.type}</div>
                 <div><strong>ปี:</strong> {selectedSubmission.year}</div>
                 <div style={{ gridColumn: '1 / -1' }}><strong>วันที่ส่ง:</strong> {new Date(selectedSubmission.date).toLocaleDateString('th-TH')}</div>
+                {selectedSubmission.completedAt && (
+                  <div style={{ gridColumn: '1 / -1', backgroundColor: '#e8f5e9', padding: '10px', borderRadius: '4px' }}>
+                    <strong>ตรวจเสร็จเมื่อ:</strong> {new Date(selectedSubmission.completedAt).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                )}
                 <div style={{ gridColumn: '1 / -1' }}>
                   <strong>สถานะ:</strong> 
                   <span style={{ marginLeft: '10px', padding: '5px 12px', backgroundColor: getStatusColor(selectedSubmission.status), color: 'white', borderRadius: '4px', fontWeight: 'bold' }}>
@@ -488,7 +605,33 @@ const App = () => {
                   <strong style={{ display: 'block', marginBottom: '10px' }}>รูปงาน ({selectedSubmission.images.length} รูป):</strong>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
                     {selectedSubmission.images.map((img, idx) => (
-                      <img key={idx} src={img} alt={`work ${idx + 1}`} style={{ width: '100%', height: '200px', objectFit: 'cover', border: '2px solid #ddd', borderRadius: '4px' }} />
+                      <div 
+                        key={idx} 
+                        style={{ position: 'relative', cursor: 'pointer' }}
+                        onClick={() => setViewImage(img)}
+                      >
+                        <img 
+                          src={img} 
+                          alt={`work ${idx + 1}`} 
+                          style={{ width: '100%', height: '200px', objectFit: 'cover', border: '2px solid #ddd', borderRadius: '4px' }} 
+                        />
+                        <div style={{ 
+                          position: 'absolute', 
+                          top: '50%', 
+                          left: '50%', 
+                          transform: 'translate(-50%, -50%)',
+                          backgroundColor: 'rgba(0,0,0,0.6)',
+                          color: 'white',
+                          padding: '8px',
+                          borderRadius: '50%',
+                          opacity: 0,
+                          transition: 'opacity 0.3s',
+                          pointerEvents: 'none'
+                        }}
+                        className="zoom-icon">
+                          <ZoomIn size={24} />
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -504,6 +647,7 @@ const App = () => {
   const AdminPage = () => {
     const [localSearchTerm, setLocalSearchTerm] = useState('');
     const [localSearchType, setLocalSearchType] = useState('name');
+    const [confirmDelete, setConfirmDelete] = useState(null);
     
     const getFilteredSubmissions = () => {
       const filtered = submissions.filter(sub => {
@@ -546,6 +690,11 @@ const App = () => {
       setEditingId(null);
     };
 
+    const handleDelete = (submissionId) => {
+      deleteSubmission(submissionId);
+      setConfirmDelete(null);
+    };
+
     const toggleCard = (studentId) => {
       setExpandedCards(prev => ({
         ...prev,
@@ -566,7 +715,11 @@ const App = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div>
             <h2 style={{ margin: 0 }}>Admin Panel</h2>
-            <p style={{ margin: '5px 0', color: '#666' }}>จำนวนนักเรียนที่ส่งงาน: {Object.keys(groupedSubmissions).length} คน | งานทั้งหมด: {submissions.length} งาน</p>
+            <p style={{ margin: '5px 0', color: '#666' }}>
+              จำนวนนักเรียนที่ส่งงาน: {Object.keys(groupedSubmissions).length} คน | 
+              งานทั้งหมด: {submissions.length} งาน | 
+              ตรวจแล้ว: {submissions.filter(s => s.status === 'ตรวจแล้ว').length} งาน
+            </p>
           </div>
           <button onClick={handleLogout} style={{ padding: '10px 20px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
             <LogOut size={16} /> ออกจากระบบ
@@ -643,13 +796,18 @@ const App = () => {
                         <p style={{ margin: '0 0 5px 0', color: '#666' }}>รหัสวิชา: {sub.subjectCode}</p>
                         <p style={{ margin: '0 0 10px 0', color: '#666' }}>ติด {sub.type} - ปี {sub.year}</p>
                         
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', gap: '8px' }}>
                           <span style={{ padding: '5px 12px', backgroundColor: getStatusColor(sub.status), color: 'white', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold' }}>
                             {sub.status}
                           </span>
-                          <button onClick={() => handleEdit(sub)} style={{ padding: '6px 12px', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <Edit2 size={14} /> แก้ไข
-                          </button>
+                          <div style={{ display: 'flex', gap: '5px' }}>
+                            <button onClick={() => handleEdit(sub)} style={{ padding: '6px 12px', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <Edit2 size={14} /> แก้ไข
+                            </button>
+                            <button onClick={() => setConfirmDelete(sub.id)} style={{ padding: '6px 12px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <Trash2 size={14} /> ลบ
+                            </button>
+                          </div>
                         </div>
                         
                         {sub.images && sub.images.length > 0 && (
@@ -657,7 +815,17 @@ const App = () => {
                             <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '5px' }}>รูปงาน ({sub.images.length} รูป):</div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
                               {sub.images.slice(0, 3).map((img, imgIdx) => (
-                                <img key={imgIdx} src={img} alt={`work ${imgIdx + 1}`} style={{ width: '100%', height: '70px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd' }} />
+                                <div 
+                                  key={imgIdx}
+                                  style={{ position: 'relative', cursor: 'pointer' }}
+                                  onClick={() => setViewImage(img)}
+                                >
+                                  <img 
+                                    src={img} 
+                                    alt={`work ${imgIdx + 1}`} 
+                                    style={{ width: '100%', height: '70px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd' }} 
+                                  />
+                                </div>
                               ))}
                             </div>
                             {sub.images.length > 3 && (
@@ -688,6 +856,30 @@ const App = () => {
             </p>
           </div>
         )}
+        
+        {/* Confirm Delete Modal */}
+        {confirmDelete && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+            <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '400px', width: '90%' }}>
+              <h3 style={{ marginTop: 0, color: '#f44336' }}>ยืนยันการลบ</h3>
+              <p style={{ margin: '15px 0', color: '#666' }}>คุณแน่ใจหรือไม่ที่จะลบงานนี้? การกระทำนี้ไม่สามารถยกเลิกได้</p>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                <button 
+                  onClick={() => handleDelete(confirmDelete)} 
+                  style={{ flex: 1, padding: '10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  ยืนยันลบ
+                </button>
+                <button 
+                  onClick={() => setConfirmDelete(null)} 
+                  style={{ flex: 1, padding: '10px', backgroundColor: '#757575', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  ยกเลิก
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -695,6 +887,7 @@ const App = () => {
   // Render
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+      <ImageViewer />
       <PopupNotification />
       <style>{`
         @keyframes slideIn {
@@ -706,6 +899,13 @@ const App = () => {
             transform: translateX(0);
             opacity: 1;
           }
+        }
+        .zoom-icon {
+          opacity: 0 !important;
+          transition: opacity 0.3s;
+        }
+        div:hover .zoom-icon {
+          opacity: 1 !important;
         }
       `}</style>
       {!currentUser && <LoginPage />}
