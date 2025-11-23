@@ -195,7 +195,8 @@ const App = () => {
   };
 
   const getUserSubmissions = () => {
-    return submissions.filter(sub => sub.userId === currentUser.id && !sub.isDeleted);
+    // Student sees ALL their submissions, even if Admin "deleted" them (moved to trash)
+    return submissions.filter(sub => sub.userId === currentUser.id);
   };
 
   // Components
@@ -409,6 +410,7 @@ const App = () => {
       date: new Date().toISOString().split('T')[0],
       images: []
     });
+    const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
 
     const handleImageUpload = (e) => {
       const files = Array.from(e.target.files);
@@ -461,6 +463,10 @@ const App = () => {
         showPopup('กรุณาอัปโหลดรูปงานอย่างน้อย 1 รูป', 'error');
         return;
       }
+      setShowConfirmSubmit(true);
+    };
+
+    const confirmSubmit = () => {
       handleSubmitWork(formData);
       setFormData({
         studentName: '',
@@ -473,6 +479,7 @@ const App = () => {
         date: new Date().toISOString().split('T')[0],
         images: []
       });
+      setShowConfirmSubmit(false);
     };
 
     return (
@@ -545,6 +552,30 @@ const App = () => {
             <Upload size={18} /> ส่งงาน
           </button>
         </form>
+
+        {/* Confirm Submit Modal */}
+        {showConfirmSubmit && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
+            <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
+              <h3 style={{ marginTop: 0, color: '#333' }}>ยืนยันการส่งงาน</h3>
+              <p style={{ margin: '15px 0', color: '#666' }}>คุณตรวจสอบข้อมูลถูกต้องแล้วใช่หรือไม่?</p>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                <button
+                  onClick={confirmSubmit}
+                  style={{ flex: 1, padding: '10px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  ยืนยัน
+                </button>
+                <button
+                  onClick={() => setShowConfirmSubmit(false)}
+                  style={{ flex: 1, padding: '10px', backgroundColor: '#757575', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  ยกเลิก
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -742,7 +773,8 @@ const App = () => {
     const groupedSubmissions = getFilteredSubmissions();
     const [editingId, setEditingId] = useState(null);
     const [editData, setEditData] = useState({});
-    const [expandedCards, setExpandedCards] = useState({});
+    const [expandedCards, setExpandedCards] = useState({}); // For student cards
+    const [expandedSubmissions, setExpandedSubmissions] = useState({}); // For individual submission labels
 
     const handleEdit = (submission) => {
       setEditingId(submission.id);
@@ -763,6 +795,13 @@ const App = () => {
       setExpandedCards(prev => ({
         ...prev,
         [studentId]: !prev[studentId]
+      }));
+    };
+
+    const toggleSubmission = (submissionId) => {
+      setExpandedSubmissions(prev => ({
+        ...prev,
+        [submissionId]: !prev[submissionId]
       }));
     };
 
@@ -857,101 +896,140 @@ const App = () => {
                   งานทั้งหมด: {subs.length} งาน
                 </div>
 
-                {displaySubs.map((sub, idx) => (
-                  <div key={sub.id} style={{ backgroundColor: 'white', padding: '15px', marginBottom: '10px', border: '1px solid #ddd', borderRadius: '4px' }}>
-                    <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px', fontWeight: 'bold' }}>
-                      งานที่ {subs.length - subs.indexOf(sub)} - {new Date(sub.submittedAt).toLocaleString('th-TH')}
-                    </div>
+                {displaySubs.map((sub, idx) => {
+                  const isSubExpanded = expandedSubmissions[sub.id];
 
-                    {editingId === sub.id ? (
-                      <div style={{ fontSize: '14px' }}>
-                        <div style={{ marginBottom: '8px' }}>
-                          <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '3px' }}>ชื่อวิชา:</label>
-                          <input type="text" value={editData.subjectName} onChange={(e) => setEditData({ ...editData, subjectName: e.target.value })} style={{ width: '100%', padding: '6px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                  return (
+                    <div key={sub.id} style={{ marginBottom: '10px', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden', backgroundColor: 'white' }}>
+                      {/* Label Header */}
+                      <div
+                        onClick={() => toggleSubmission(sub.id)}
+                        style={{
+                          padding: '12px',
+                          backgroundColor: isSubExpanded ? '#f0f0f0' : 'white',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          borderBottom: isSubExpanded ? '1px solid #ddd' : 'none'
+                        }}
+                      >
+                        <div style={{ fontWeight: 'bold', fontSize: '14px' }}>
+                          ส่งงานแก้วิชา: {sub.subjectName} รหัสวิชา: {sub.subjectCode}
                         </div>
-                        <div style={{ marginBottom: '8px' }}>
-                          <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '3px' }}>รหัสวิชา:</label>
-                          <input type="text" value={editData.subjectCode} onChange={(e) => setEditData({ ...editData, subjectCode: e.target.value })} style={{ width: '100%', padding: '6px', border: '1px solid #ddd', borderRadius: '4px' }} />
-                        </div>
-                        <div style={{ marginBottom: '10px' }}>
-                          <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '3px' }}>สถานะ:</label>
-                          <select value={editData.status} onChange={(e) => setEditData({ ...editData, status: e.target.value })} style={{ width: '100%', padding: '6px', border: '1px solid #ddd', borderRadius: '4px' }}>
-                            <option value="ยังไม่ตรวจ">ยังไม่ตรวจ</option>
-                            <option value="กำลังตรวจ">กำลังตรวจ</option>
-                            <option value="ตรวจแล้ว">ตรวจแล้ว</option>
-                          </select>
-                        </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <button onClick={handleSaveEdit} style={{ flex: 1, padding: '8px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                            <Check size={16} /> บันทึก
-                          </button>
-                          <button onClick={() => setEditingId(null)} style={{ flex: 1, padding: '8px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
-                            <X size={16} /> ยกเลิก
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ fontSize: '14px' }}>
-                        <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', fontSize: '15px' }}>{sub.subjectName}</p>
-                        <p style={{ margin: '0 0 5px 0', color: '#666' }}>รหัสวิชา: {sub.subjectCode}</p>
-                        <p style={{ margin: '0 0 10px 0', color: '#666' }}>ติด {sub.type} - ปี {sub.year}</p>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', gap: '8px' }}>
-                          <span style={{ padding: '5px 12px', backgroundColor: getStatusColor(sub.status), color: 'white', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{
+                            fontSize: '12px',
+                            padding: '3px 8px',
+                            borderRadius: '10px',
+                            backgroundColor: getStatusColor(sub.status),
+                            color: 'white'
+                          }}>
                             {sub.status}
                           </span>
-                          <div style={{ display: 'flex', gap: '5px' }}>
-                            {activeTab === 'active' ? (
-                              <>
-                                <button onClick={() => handleEdit(sub)} style={{ padding: '6px 12px', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                  <Edit2 size={14} /> แก้ไข
-                                </button>
-                                <button onClick={() => setConfirmDelete(sub.id)} style={{ padding: '6px 12px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                  <Trash2 size={14} /> ลบ
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button onClick={() => restoreSubmission(sub.id)} style={{ padding: '6px 12px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                  <RotateCcw size={14} /> กู้คืน
-                                </button>
-                                <button onClick={() => setConfirmDelete(sub.id)} style={{ padding: '6px 12px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                  <Trash size={14} /> ลบถาวร
-                                </button>
-                              </>
-                            )}
-                          </div>
+                          <span style={{ transform: isSubExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
                         </div>
-
-                        {sub.images && sub.images.length > 0 && (
-                          <div style={{ marginTop: '12px' }}>
-                            <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '5px' }}>รูปงาน ({sub.images.length} รูป):</div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
-                              {sub.images.slice(0, 3).map((img, imgIdx) => (
-                                <div
-                                  key={imgIdx}
-                                  style={{ position: 'relative', cursor: 'pointer' }}
-                                  onClick={() => setViewImage(img)}
-                                >
-                                  <img
-                                    src={img}
-                                    alt={`work ${imgIdx + 1}`}
-                                    style={{ width: '100%', height: '70px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd' }}
-                                  />
-                                </div>
-                              ))}
-                            </div>
-                            {sub.images.length > 3 && (
-                              <div style={{ fontSize: '11px', color: '#666', marginTop: '5px', textAlign: 'center' }}>
-                                และอีก {sub.images.length - 3} รูป
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {/* Expanded Content */}
+                      {isSubExpanded && (
+                        <div style={{ padding: '15px', backgroundColor: 'white' }}>
+                          <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px', fontWeight: 'bold' }}>
+                            ส่งเมื่อ: {new Date(sub.submittedAt).toLocaleString('th-TH')}
+                          </div>
+
+                          {editingId === sub.id ? (
+                            <div style={{ fontSize: '14px' }}>
+                              <div style={{ marginBottom: '8px' }}>
+                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '3px' }}>ชื่อวิชา:</label>
+                                <input type="text" value={editData.subjectName} onChange={(e) => setEditData({ ...editData, subjectName: e.target.value })} style={{ width: '100%', padding: '6px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                              </div>
+                              <div style={{ marginBottom: '8px' }}>
+                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '3px' }}>รหัสวิชา:</label>
+                                <input type="text" value={editData.subjectCode} onChange={(e) => setEditData({ ...editData, subjectCode: e.target.value })} style={{ width: '100%', padding: '6px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                              </div>
+                              <div style={{ marginBottom: '10px' }}>
+                                <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', marginBottom: '3px' }}>สถานะ:</label>
+                                <select value={editData.status} onChange={(e) => setEditData({ ...editData, status: e.target.value })} style={{ width: '100%', padding: '6px', border: '1px solid #ddd', borderRadius: '4px' }}>
+                                  <option value="ยังไม่ตรวจ">ยังไม่ตรวจ</option>
+                                  <option value="กำลังตรวจ">กำลังตรวจ</option>
+                                  <option value="ตรวจแล้ว">ตรวจแล้ว</option>
+                                </select>
+                              </div>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <button onClick={handleSaveEdit} style={{ flex: 1, padding: '8px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+                                  <Check size={16} /> บันทึก
+                                </button>
+                                <button onClick={() => setEditingId(null)} style={{ flex: 1, padding: '8px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+                                  <X size={16} /> ยกเลิก
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ fontSize: '14px' }}>
+                              <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', fontSize: '15px' }}>{sub.subjectName}</p>
+                              <p style={{ margin: '0 0 5px 0', color: '#666' }}>รหัสวิชา: {sub.subjectCode}</p>
+                              <p style={{ margin: '0 0 10px 0', color: '#666' }}>ติด {sub.type} - ปี {sub.year}</p>
+
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', gap: '8px' }}>
+                                <span style={{ padding: '5px 12px', backgroundColor: getStatusColor(sub.status), color: 'white', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold' }}>
+                                  {sub.status}
+                                </span>
+                                <div style={{ display: 'flex', gap: '5px' }}>
+                                  {activeTab === 'active' ? (
+                                    <>
+                                      <button onClick={() => handleEdit(sub)} style={{ padding: '6px 12px', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <Edit2 size={14} /> แก้ไข
+                                      </button>
+                                      <button onClick={() => setConfirmDelete(sub.id)} style={{ padding: '6px 12px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <Trash2 size={14} /> ลบ
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <button onClick={() => restoreSubmission(sub.id)} style={{ padding: '6px 12px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <RotateCcw size={14} /> กู้คืน
+                                      </button>
+                                      <button onClick={() => setConfirmDelete(sub.id)} style={{ padding: '6px 12px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <Trash size={14} /> ลบถาวร
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+
+                              {sub.images && sub.images.length > 0 && (
+                                <div style={{ marginTop: '12px' }}>
+                                  <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '5px' }}>รูปงาน ({sub.images.length} รูป):</div>
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
+                                    {sub.images.slice(0, 3).map((img, imgIdx) => (
+                                      <div
+                                        key={imgIdx}
+                                        style={{ position: 'relative', cursor: 'pointer' }}
+                                        onClick={() => setViewImage(img)}
+                                      >
+                                        <img
+                                          src={img}
+                                          alt={`work ${imgIdx + 1}`}
+                                          style={{ width: '100%', height: '70px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd' }}
+                                        />
+                                      </div>
+                                    ))}
+                                  </div>
+                                  {sub.images.length > 3 && (
+                                    <div style={{ fontSize: '11px', color: '#666', marginTop: '5px', textAlign: 'center' }}>
+                                      และอีก {sub.images.length - 3} รูป
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 {subs.length > 1 && (
                   <button onClick={() => toggleCard(studentId)} style={{ width: '100%', padding: '10px', backgroundColor: '#607D8B', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
