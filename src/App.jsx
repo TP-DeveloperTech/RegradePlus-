@@ -303,84 +303,92 @@ const App = () => {
     };
 
     return (
-      <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ddd', backgroundColor: 'white', borderRadius: '8px' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>{isRegister ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}</h2>
-        <form onSubmit={handleSubmit}>
-          {isRegister && (
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ชื่อ-นามสกุล:</label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-              />
-            </div>
-          )}
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email:</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="yourname@taweethapisek.ac.th"
-              required
-              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-            />
-          </div>
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Password:</label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-            />
-          </div>
-
-          {isRegister && (
-            <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'flex', alignItems: 'center' }}>
-                <input
-                  type="checkbox"
-                  checked={showAdminCode}
-                  onChange={(e) => setShowAdminCode(e.target.checked)}
-                  style={{ marginRight: '8px' }}
-                />
-                ฉันเป็น Admin (ต้องมีรหัส Admin)
-              </label>
-
-              {showAdminCode && (
-                <div style={{ marginTop: '10px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>รหัส Admin:</label>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f5f5f5' }}>
+        <div style={{ backgroundColor: '#4CAF50', color: 'white', padding: '12px 20px', textAlign: 'left', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>RegradePlus+</h1>
+          <p style={{ margin: '2px 0 0 0', fontSize: '13px', opacity: 0.95 }}>กลุ่มสาระการเรียนรู้วิทยาศาสตร์ & เทคโนโลยี</p>
+        </div>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ maxWidth: '450px', width: '100%', padding: '30px', border: '1px solid #ddd', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>{isRegister ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}</h2>
+            <form onSubmit={handleSubmit}>
+              {isRegister && (
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ชื่อ-นามสกุล:</label>
                   <input
-                    type="password"
-                    value={formData.adminCode}
-                    onChange={(e) => setFormData({ ...formData, adminCode: e.target.value })}
-                    placeholder="กรุณาใส่รหัส Admin"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
                     style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
                   />
                 </div>
               )}
-            </div>
-          )}
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email:</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="yourname@taweethapisek.ac.th"
+                  required
+                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Password:</label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+              </div>
 
-          <button type="submit" style={{ width: '100%', padding: '12px', backgroundColor: '#4CAF50', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold', fontSize: '16px' }}>
-            {isRegister ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
-          </button>
-        </form>
-        <p style={{ textAlign: 'center', marginTop: '20px' }}>
-          {isRegister ? 'มีบัญชีแล้ว?' : 'ยังไม่มีบัญชี?'}
-          <button onClick={() => {
-            setIsRegister(!isRegister);
-            setFormData({ email: '', password: '', name: '', adminCode: '' });
-            setShowAdminCode(false);
-          }} style={{ marginLeft: '5px', background: 'none', border: 'none', color: '#2196F3', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}>
-            {isRegister ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก'}
-          </button>
-        </p>
+              {isRegister && (
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={showAdminCode}
+                      onChange={(e) => setShowAdminCode(e.target.checked)}
+                      style={{ marginRight: '8px' }}
+                    />
+                    ฉันเป็น Admin (ต้องมีรหัส Admin)
+                  </label>
+
+                  {showAdminCode && (
+                    <div style={{ marginTop: '10px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>รหัส Admin:</label>
+                      <input
+                        type="password"
+                        value={formData.adminCode}
+                        onChange={(e) => setFormData({ ...formData, adminCode: e.target.value })}
+                        placeholder="กรุณาใส่รหัส Admin"
+                        style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button type="submit" style={{ width: '100%', padding: '12px', backgroundColor: '#4CAF50', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold', fontSize: '16px' }}>
+                {isRegister ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
+              </button>
+            </form>
+            <p style={{ textAlign: 'center', marginTop: '20px' }}>
+              {isRegister ? 'มีบัญชีแล้ว?' : 'ยังไม่มีบัญชี?'}
+              <button onClick={() => {
+                setIsRegister(!isRegister);
+                setFormData({ email: '', password: '', name: '', adminCode: '' });
+                setShowAdminCode(false);
+              }} style={{ marginLeft: '5px', background: 'none', border: 'none', color: '#2196F3', cursor: 'pointer', textDecoration: 'underline', fontSize: '14px' }}>
+                {isRegister ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก'}
+              </button>
+            </p>
+          </div>
+        </div>
       </div>
     );
   };
@@ -393,7 +401,7 @@ const App = () => {
       subjectCode: '',
       subjectName: '',
       type: 'ศูนย์',
-      year: new Date().getFullYear() + 543,
+      gradeYear: '',
       date: new Date().toISOString().split('T')[0],
       images: []
     });
@@ -430,7 +438,7 @@ const App = () => {
         subjectCode: '',
         subjectName: '',
         type: 'ศูนย์',
-        year: new Date().getFullYear() + 543,
+        gradeYear: '',
         date: new Date().toISOString().split('T')[0],
         images: []
       });
@@ -479,8 +487,8 @@ const App = () => {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ปี (พ.ศ.): *</label>
-              <input type="number" value={formData.year} onChange={(e) => setFormData({ ...formData, year: e.target.value })} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} />
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ชั้นที่ติด-ปีการศึกษา: *</label>
+              <input type="text" placeholder="เช่น 4/3 2567" value={formData.gradeYear} onChange={(e) => setFormData({ ...formData, gradeYear: e.target.value })} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} />
             </div>
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>วันที่ส่ง: *</label>
@@ -605,7 +613,7 @@ const App = () => {
                 <div><strong>รหัสวิชา:</strong> {selectedSubmission.subjectCode}</div>
                 <div style={{ gridColumn: '1 / -1' }}><strong>ชื่อวิชา:</strong> {selectedSubmission.subjectName}</div>
                 <div><strong>ติด:</strong> {selectedSubmission.type}</div>
-                <div><strong>ปี:</strong> {selectedSubmission.year}</div>
+                <div><strong>ชั้นที่ติด-ปีการศึกษา:</strong> {selectedSubmission.gradeYear}</div>
                 <div style={{ gridColumn: '1 / -1' }}><strong>วันที่ส่ง:</strong> {new Date(selectedSubmission.date).toLocaleDateString('th-TH')}</div>
                 {selectedSubmission.completedAt && (
                   <div style={{ gridColumn: '1 / -1', backgroundColor: '#e8f5e9', padding: '10px', borderRadius: '4px' }}>
@@ -814,7 +822,7 @@ const App = () => {
                       <div style={{ fontSize: '14px' }}>
                         <p style={{ margin: '0 0 5px 0', fontWeight: 'bold', fontSize: '15px' }}>{sub.subjectName}</p>
                         <p style={{ margin: '0 0 5px 0', color: '#666' }}>รหัสวิชา: {sub.subjectCode}</p>
-                        <p style={{ margin: '0 0 10px 0', color: '#666' }}>ติด {sub.type} - ปี {sub.year}</p>
+                        <p style={{ margin: '0 0 10px 0', color: '#666' }}>ติด {sub.type} - {sub.gradeYear}</p>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', gap: '8px' }}>
                           <span style={{ padding: '5px 12px', backgroundColor: getStatusColor(sub.status), color: 'white', fontSize: '12px', borderRadius: '4px', fontWeight: 'bold' }}>
