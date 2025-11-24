@@ -65,11 +65,11 @@ export const dataService = {
         return saveToStorage(STORAGE_KEYS.SUBMISSIONS, updated);
     },
 
-    // Soft delete
+    // Soft delete - move to trash
     deleteSubmission: (id) => {
         const submissions = getFromStorage(STORAGE_KEYS.SUBMISSIONS) || [];
         const updated = submissions.map(sub =>
-            sub.id === id ? { ...sub, isDeleted: true, deletedAt: new Date().toISOString() } : sub
+            sub.id === id ? { ...sub, status: 'trash', deletedAt: new Date().toISOString() } : sub
         );
         return saveToStorage(STORAGE_KEYS.SUBMISSIONS, updated);
     },
@@ -79,8 +79,8 @@ export const dataService = {
         const submissions = getFromStorage(STORAGE_KEYS.SUBMISSIONS) || [];
         const updated = submissions.map(sub => {
             if (sub.id === id) {
-                const { isDeleted, deletedAt, ...rest } = sub;
-                return rest;
+                const { deletedAt, ...rest } = sub;
+                return { ...rest, status: 'ยังไม่ตรวจ' };
             }
             return sub;
         });
