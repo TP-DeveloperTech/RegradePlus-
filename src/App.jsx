@@ -9,23 +9,6 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('name');
   const [popup, setPopup] = useState({ show: false, message: '', type: 'success' });
-  const [viewImage, setViewImage] = useState(null);
-
-  // Admin Secret Code
-  const ADMIN_SECRET_CODE = 'ADMIN2025';
-
-  // Popup Function
-  const showPopup = (message, type = 'success') => {
-    setPopup({ show: true, message, type });
-    setTimeout(() => {
-      setPopup({ show: false, message: '', type: 'success' });
-    }, 3000);
-  };
-
-  // Load data on mount
-  useEffect(() => {
-    loadData();
-  }, []);
 
   const loadData = () => {
     try {
@@ -92,9 +75,14 @@ const App = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
     setCurrentUser(null);
     setPage('login');
+    setShowLogoutConfirm(false);
   };
 
   // Submit Work
@@ -450,7 +438,7 @@ const App = () => {
           <h2>ส่งงานแก้</h2>
           <div>
             <button onClick={() => setPage('history')} style={{ marginRight: '10px', padding: '10px 20px', backgroundColor: '#2196F3', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>ประวัติ</button>
-            <button onClick={handleLogout} style={{ padding: '10px 20px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+            <button onClick={handleLogoutClick} style={{ padding: '10px 20px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
               <LogOut size={16} /> ออกจากระบบ
             </button>
           </div>
@@ -555,7 +543,7 @@ const App = () => {
           <h2>ประวัติการส่งงาน ({userSubmissions.length} งาน)</h2>
           <div>
             <button onClick={() => setPage('submit')} style={{ marginRight: '10px', padding: '10px 20px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>ส่งงานใหม่</button>
-            <button onClick={handleLogout} style={{ padding: '10px 20px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+            <button onClick={handleLogoutClick} style={{ padding: '10px 20px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
               <LogOut size={16} /> ออกจากระบบ
             </button>
           </div>
@@ -749,7 +737,7 @@ const App = () => {
               ตรวจแล้ว: {submissions.filter(s => s.status === 'ตรวจแล้ว').length} งาน
             </p>
           </div>
-          <button onClick={handleLogout} style={{ padding: '10px 20px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+          <button onClick={handleLogoutClick} style={{ padding: '10px 20px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
             <LogOut size={16} /> ออกจากระบบ
           </button>
         </div>
@@ -917,6 +905,30 @@ const App = () => {
     <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
       <ImageViewer />
       <PopupNotification />
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
+          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', maxWidth: '400px', width: '90%', textAlign: 'center' }}>
+            <h3 style={{ marginTop: 0, color: '#333' }}>ยืนยันการออกจากระบบ</h3>
+            <p style={{ margin: '15px 0', color: '#666' }}>คุณต้องการออกจากระบบใช่หรือไม่?</p>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button
+                onClick={confirmLogout}
+                style={{ flex: 1, padding: '10px', backgroundColor: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                ออกจากระบบ
+              </button>
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                style={{ flex: 1, padding: '10px', backgroundColor: '#757575', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                ยกเลิก
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <style>{`
         @keyframes slideIn {
           from {
