@@ -997,8 +997,8 @@ const App = () => {
     const savedSubmissions = localStorage.getItem('regradeSubmissions');
 
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
       const parsedUser = JSON.parse(savedUser);
+      setUser(parsedUser);
       setPage(parsedUser.isAdmin ? 'admin' : 'submit');
     }
 
@@ -1013,22 +1013,31 @@ const App = () => {
   };
 
   const handleLogin = (email, password) => {
-    // Admin Login
+    // 1. Check Hardcoded Admin
     if (email === 'admin@taweethapisek.ac.th' && password === 'admin1234') {
       const adminUser = { name: 'Admin', email, isAdmin: true };
-      setUser(adminUser);
-      localStorage.setItem('regradeUser', JSON.stringify(adminUser));
-      setPage('admin');
-      showPopup('เข้าสู่ระบบผู้ดูแลระบบสำเร็จ');
+      loginUser(adminUser);
       return;
     }
 
-    // User Login (Simulation)
-    const mockUser = { name: 'นักเรียน ทดสอบ', email, isAdmin: false };
-    setUser(mockUser);
-    localStorage.setItem('regradeUser', JSON.stringify(mockUser));
-    setPage('submit');
-    showPopup('เข้าสู่ระบบสำเร็จ');
+    // 2. Check Registered Users from LocalStorage
+    const usersList = JSON.parse(localStorage.getItem('regradeUsersList') || '[]');
+    const foundUser = usersList.find(u => u.email === email && u.password === password);
+
+    if (foundUser) {
+      loginUser(foundUser);
+    } else {
+      // Fallback for demo/testing if no user found (Optional: remove this if you want strict login)
+      // For now, let's show error if not found to be correct
+      showPopup('อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
+    }
+  };
+
+  const loginUser = (userData) => {
+    setUser(userData);
+    localStorage.setItem('regradeUser', JSON.stringify(userData));
+    setPage(userData.isAdmin ? 'admin' : 'submit');
+    showPopup(userData.isAdmin ? 'เข้าสู่ระบบผู้ดูแลระบบสำเร็จ' : 'เข้าสู่ระบบสำเร็จ');
   };
 
   const handleRegister = (email, password, name, adminCode) => {
@@ -1037,15 +1046,26 @@ const App = () => {
       return;
     }
 
+    // Check if email already exists
+    const usersList = JSON.parse(localStorage.getItem('regradeUsersList') || '[]');
+    if (usersList.some(u => u.email === email)) {
+      showPopup('อีเมลนี้ถูกใช้งานแล้ว', 'error');
+      return;
+    }
+
     const newUser = {
       name,
       email,
+      password, // In a real app, never store plain passwords!
       isAdmin: !!adminCode
     };
 
-    setUser(newUser);
-    localStorage.setItem('regradeUser', JSON.stringify(newUser));
-    setPage(newUser.isAdmin ? 'admin' : 'submit');
+    // Save to list
+    usersList.push(newUser);
+    localStorage.setItem('regradeUsersList', JSON.stringify(usersList));
+
+    // Auto login
+    loginUser(newUser);
     showPopup('ลงทะเบียนสำเร็จ');
   };
 
