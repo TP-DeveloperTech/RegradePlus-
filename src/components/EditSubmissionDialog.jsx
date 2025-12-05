@@ -28,15 +28,15 @@ const EditSubmissionDialog = ({ submission, onSave, onCancel }) => {
                             <input name="studentId" value={formData.studentId} onChange={handleChange} className="form-input" required />
                         </div>
                         <div className="form-group">
-                            <label className="form-label">ชั้น</label>
+                            <label className="form-label">ชั้นเรียนปัจจุบัน</label>
                             <input name="grade" value={formData.grade} onChange={handleChange} className="form-input" required />
                         </div>
                         <div className="form-group">
-                            <label className="form-label">รหัสวิชา</label>
+                            <label className="form-label">รหัสวิชาที่ติด</label>
                             <input name="subjectCode" value={formData.subjectCode} onChange={handleChange} className="form-input" required />
                         </div>
                         <div className="form-group">
-                            <label className="form-label">ชื่อวิชา</label>
+                            <label className="form-label">ชื่อวิชาที่ติด</label>
                             <input name="subjectName" value={formData.subjectName} onChange={handleChange} className="form-input" required />
                         </div>
                         <div className="form-group">
@@ -45,7 +45,7 @@ const EditSubmissionDialog = ({ submission, onSave, onCancel }) => {
                                 <option value="ศูนย์">ศูนย์</option>
                                 <option value="ร.">ร.</option>
                                 <option value="มส.">มส.</option>
-                                <option value="มพ.">มพ.</option>
+                                <option value="มผ.">มผ.</option>
                             </select>
                         </div>
                         <div className="form-group">

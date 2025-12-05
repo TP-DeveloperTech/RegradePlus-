@@ -11,6 +11,7 @@ const SubmitWorkPage = ({ onSubmit, onNavigate, currentUser, onLogout }) => {
         subjectName: '',
         type: 'ศูนย์',
         gradeYear: '',
+        submissionDate: new Date().toISOString().split('T')[0], // Default to today
         images: []
     });
     const [isDragging, setIsDragging] = useState(false);
@@ -38,6 +39,7 @@ const SubmitWorkPage = ({ onSubmit, onNavigate, currentUser, onLogout }) => {
             subjectName: '',
             type: 'ศูนย์',
             gradeYear: '',
+            submissionDate: new Date().toISOString().split('T')[0],
             images: []
         });
     };
@@ -59,12 +61,13 @@ const SubmitWorkPage = ({ onSubmit, onNavigate, currentUser, onLogout }) => {
                     <div><label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>อีเมล: *</label><input type="email" value={formData.email} disabled style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f5f5f5', color: '#666', cursor: 'not-allowed' }} /></div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-                    <div><label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ชั้น: *</label><input type="text" value={formData.grade} onChange={(e) => setFormData({ ...formData, grade: e.target.value })} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} /></div>
+                    <div><label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ชั้นเรียนปัจจุบัน: *</label><input type="text" value={formData.grade} onChange={(e) => setFormData({ ...formData, grade: e.target.value })} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} /></div>
                     <div><label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>รหัสนักเรียน: *</label><input type="text" value={formData.studentId} onChange={(e) => setFormData({ ...formData, studentId: e.target.value })} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} /></div>
                 </div>
-                <div><label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>รหัสวิชา: *</label><input type="text" value={formData.subjectCode} onChange={(e) => setFormData({ ...formData, subjectCode: e.target.value })} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} /></div>
-                <div><label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ชื่อวิชา: *</label><input type="text" value={formData.subjectName} onChange={(e) => setFormData({ ...formData, subjectName: e.target.value })} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} /></div>
-                <div><label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ติด: *</label><select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}><option value="ศูนย์">ศูนย์</option><option value="ร.">ร.</option><option value="มส.">มส.</option><option value="มพ.">มพ.</option></select></div>
+                <div><label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>วันส่ง: *</label><input type="date" value={formData.submissionDate} onChange={(e) => setFormData({ ...formData, submissionDate: e.target.value })} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px', marginBottom: '20px' }} /></div>
+                <div><label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>รหัสวิชาที่ติด: *</label><input type="text" value={formData.subjectCode} onChange={(e) => setFormData({ ...formData, subjectCode: e.target.value })} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} /></div>
+                <div><label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ชื่อวิชาที่ติด: *</label><input type="text" value={formData.subjectName} onChange={(e) => setFormData({ ...formData, subjectName: e.target.value })} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} /></div>
+                <div><label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ติด: *</label><select value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}><option value="ศูนย์">ศูนย์</option><option value="ร.">ร.</option><option value="มส.">มส.</option><option value="มผ.">มผ.</option></select></div>
                 <div><label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>ชั้นที่ติด-เทอม-ปีการศึกษา (ตัวอย่าง ม.4/5 เทอม1/2567): *</label><input type="text" value={formData.gradeYear} onChange={(e) => setFormData({ ...formData, gradeYear: e.target.value })} required style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }} /></div>
                 <div style={{ marginTop: '20px' }}>
                     <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>รูปงานแก้: *</label>

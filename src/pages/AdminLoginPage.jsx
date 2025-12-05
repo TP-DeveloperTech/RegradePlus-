@@ -13,7 +13,7 @@ const AdminLoginPage = ({ onLogin, onRegister, onNavigateToLogin }) => {
             // Always include adminCode for admin registration
             onRegister({ ...formData, adminCode: formData.adminCode });
         } else {
-            onLogin(formData.email, formData.password);
+            onLogin(formData.email, formData.password, true);
         }
     };
 

@@ -117,7 +117,7 @@ const App = () => {
     setTimeout(() => setPopup(prev => ({ ...prev, show: false })), 3000);
   };
 
-  const handleLogin = async (email, password) => {
+  const handleLogin = async (email, password, isAdminLogin = false) => {
     try {
       // Try to sign in with Firebase Auth
       // Normalize email to lowercase
@@ -140,6 +140,14 @@ const App = () => {
         setUsers(updatedUsers);
       }
 
+      // Check for Admin Login restriction
+      if (isAdminLogin && !user.isAdmin) {
+        showPopup('บัญชีนี้ไม่มีสิทธิ์เข้าถึงส่วน Admin', 'error');
+        // Optional: Sign out immediately if we don't want them logged in at all
+        await authService.signOutUser();
+        return;
+      }
+
       setCurrentUser(user);
       localStorage.setItem('currentUser', JSON.stringify(user));
       const targetPage = user.isAdmin ? 'admin' : 'submit';
@@ -152,6 +160,11 @@ const App = () => {
       const normalizedEmailFallback = email.toLowerCase().trim();
       const user = users.find(u => u.email.toLowerCase() === normalizedEmailFallback && u.password === password);
       if (user) {
+        // Check for Admin Login restriction (Fallback)
+        if (isAdminLogin && !user.isAdmin) {
+          showPopup('บัญชีนี้ไม่มีสิทธิ์เข้าถึงส่วน Admin', 'error');
+          return;
+        }
         setCurrentUser(user);
         localStorage.setItem('currentUser', JSON.stringify(user));
         const targetPage = user.isAdmin ? 'admin' : 'submit';
